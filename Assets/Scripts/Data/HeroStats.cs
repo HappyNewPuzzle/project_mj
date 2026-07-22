@@ -1,0 +1,1 @@
+using UnityEngine; namespace Mojinloop.Data { [CreateAssetMenu(menuName="Mojinloop/Hero Stats")] public sealed class HeroStats:ScriptableObject { [Min(1)] public int maxHp=100; [Min(1)] public int attackDamage=10; [Min(.05f)] public float attackInterval=.4f; } }

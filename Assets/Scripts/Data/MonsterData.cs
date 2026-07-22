@@ -1,0 +1,1 @@
+using UnityEngine; namespace Mojinloop.Data { [CreateAssetMenu(menuName="Mojinloop/Monster Data")] public sealed class MonsterData:ScriptableObject { [Min(1)] public int maxHp=30; [Min(.1f)] public float moveSpeed=1.2f; [Min(0)] public int coinReward=5; public Color color=new(.93f,.3f,.28f,1); } }

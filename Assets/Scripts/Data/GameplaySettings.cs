@@ -1,0 +1,1 @@
+using UnityEngine; namespace Mojinloop.Data { [CreateAssetMenu(menuName="Mojinloop/Gameplay Settings")] public sealed class GameplaySettings:ScriptableObject { [Min(.05f)] public float activeHoldDuration=.5f; [Min(.1f)] public float worldScrollSpeed=2.2f; [Min(.1f)] public float attackRange=1.35f; [Min(.05f)] public float nextSpawnDelay=.8f; } }

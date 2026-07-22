@@ -1,0 +1,10 @@
+using System; using UnityEngine;
+namespace Mojinloop.Desktop { [DefaultExecutionOrder(-1000)] public sealed class DesktopWindowController:MonoBehaviour { [SerializeField] DesktopWindowSettings settings; IntPtr window; void Awake()=>Application.runInBackground=true; void Start(){if(settings==null)return;Screen.SetResolution(settings.width,settings.height,FullScreenMode.Windowed);
+#if UNITY_STANDALONE_WIN && !UNITY_EDITOR
+window=WindowsNativeMethods.GetActiveWindow();if(window==IntPtr.Zero)window=WindowsNativeMethods.GetForegroundWindow();if(window==IntPtr.Zero){Debug.LogError("Unity window handle was not found.");return;}ApplyWindow();
+#endif
+}
+#if UNITY_STANDALONE_WIN && !UNITY_EDITOR
+void ApplyWindow(){long style=WindowsNativeMethods.GetWindowLongPtr(window,WindowsNativeMethods.GWL_STYLE).ToInt64();style=(style&~0x00CF0000L)|WindowsNativeMethods.WS_POPUP|WindowsNativeMethods.WS_VISIBLE;WindowsNativeMethods.SetWindowLongPtr(window,WindowsNativeMethods.GWL_STYLE,new IntPtr(style));long ex=WindowsNativeMethods.GetWindowLongPtr(window,WindowsNativeMethods.GWL_EXSTYLE).ToInt64()|WindowsNativeMethods.WS_EX_LAYERED|WindowsNativeMethods.WS_EX_TOOLWINDOW;if(settings.clickThrough)ex|=WindowsNativeMethods.WS_EX_TRANSPARENT;WindowsNativeMethods.SetWindowLongPtr(window,WindowsNativeMethods.GWL_EXSTYLE,new IntPtr(ex));var m=new WindowsNativeMethods.Margins{Left=-1};int hr=WindowsNativeMethods.DwmExtendFrameIntoClientArea(window,ref m);if(hr!=0)Debug.LogWarning($"DWM transparency failed: 0x{hr:X8}");if(!WindowsNativeMethods.SystemParametersInfo(WindowsNativeMethods.SPI_GETWORKAREA,0,out var a,0))a=new WindowsNativeMethods.Rect{Right=Display.main.systemWidth,Bottom=Display.main.systemHeight};bool ok=WindowsNativeMethods.SetWindowPos(window,settings.topmost?WindowsNativeMethods.HWND_TOPMOST:IntPtr.Zero,a.Right-settings.width-settings.rightMargin,a.Bottom-settings.height-settings.bottomMargin,settings.width,settings.height,WindowsNativeMethods.SWP_FRAMECHANGED|WindowsNativeMethods.SWP_SHOWWINDOW|WindowsNativeMethods.SWP_NOACTIVATE);if(!ok)Debug.LogError("Failed to position desktop window.");}
+#endif
+} }
