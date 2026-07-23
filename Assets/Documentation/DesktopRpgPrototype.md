@@ -12,7 +12,7 @@ Unity 6000.3.19f1 / URP 2D 기반의 Windows x64 데스크톱 오버레이 프�
 
 ## 보안 및 입력 프라이버시
 
-Windows 훅 콜백은 키 코드, 문자, 프로세스, 입력 순서, 커서 위치를 읽거나 저장하거나 전송하지 않습니다. 허용된 key-down, mouse-button-down, wheel 메시지인지 확인한 뒤 `Interlocked.Exchange`로 단일 활동 플래그만 설정합니다. Unity API는 훅 콜백에서 호출하지 않고 `Update`에서 플래그를 소비합니다. 이벤트별 로그도 남기지 않습니다.
+Windows 훅 콜백은 키 코드, 문자, 프로세스, 입력 순서, 커서 위치를 읽거나 저장하거나 전송하지 않습니다. 허용된 key-down, mouse-button-down, wheel 메시지인지 확인하고, `LLKHF_INJECTED`/`LLMHF_INJECTED` 계열 플래그가 있는 자동화 입력은 무시한 뒤 `Interlocked.Exchange`로 단일 활동 플래그만 설정합니다. Unity API는 훅 콜백에서 호출하지 않고 `Update`에서 플래그를 소비합니다. 이벤트별 로그도 남기지 않습니다.
 
 ## 실행 및 빌드
 
