@@ -180,7 +180,7 @@ namespace Mojinloop.Desktop
                 }
             }
 
-            bool overControls = cursor.X >= rect.Right - 150 && cursor.X < rect.Right &&
+            bool overControls = cursor.X >= rect.Right - 220 && cursor.X < rect.Right &&
                                 cursor.Y >= rect.Top && cursor.Y < rect.Top + 30;
             bool leftButtonDown =
                 (WindowsNativeMethods.GetAsyncKeyState(WindowsNativeMethods.VK_LBUTTON) & 0x8000) != 0;
@@ -190,7 +190,10 @@ namespace Mojinloop.Desktop
             if (dragMode == DragMode.None && overControls &&
                 leftButtonDown && !wasLeftButtonDown)
             {
-                BeginDrag(cursor.X >= rect.Right - 70 ? DragMode.Resize : DragMode.Move);
+                if (cursor.X >= rect.Right - 70)
+                    Application.Quit();
+                else
+                    BeginDrag(cursor.X >= rect.Right - 140 ? DragMode.Resize : DragMode.Move);
             }
 
             SetRuntimeClickThrough(IsClickThrough && !overControls && dragMode == DragMode.None);
@@ -214,10 +217,12 @@ namespace Mojinloop.Desktop
                 return;
 
             const float width = 70f;
-            var moveRect = new UnityEngine.Rect(Screen.width - width * 2, 0, width, 28);
-            var sizeRect = new UnityEngine.Rect(Screen.width - width, 0, width, 28);
+            var moveRect = new UnityEngine.Rect(Screen.width - width * 3, 0, width, 28);
+            var sizeRect = new UnityEngine.Rect(Screen.width - width * 2, 0, width, 28);
+            var exitRect = new UnityEngine.Rect(Screen.width - width, 0, width, 28);
             GUI.Box(moveRect, "MOVE");
             GUI.Box(sizeRect, "SIZE");
+            GUI.Box(exitRect, "EXIT");
         }
 
         void BeginDrag(DragMode mode)
