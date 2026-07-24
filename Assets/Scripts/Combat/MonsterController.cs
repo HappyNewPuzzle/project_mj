@@ -44,7 +44,8 @@ namespace Mojinloop.Combat
             animator.SetBool(IsMovingHash, true);
             animator.Play("Move", 0, 0f);
             spriteRenderer.color = Color.white;
-            spriteRenderer.flipX = true;
+            // The revised monster sheet already faces left.
+            spriteRenderer.flipX = false;
             gameObject.SetActive(true);
             transform.localScale = Vector3.one;
         }
@@ -61,7 +62,7 @@ namespace Mojinloop.Combat
         void LateUpdate()
         {
             if (spriteRenderer == null) spriteRenderer = GetComponent<SpriteRenderer>();
-            spriteRenderer.flipX = true;
+            spriteRenderer.flipX = false;
             if (animator == null) return;
 
             animator.SetBool(IsMovingHash, true);
