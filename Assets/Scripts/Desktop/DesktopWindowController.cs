@@ -22,6 +22,7 @@ namespace Mojinloop.Desktop
         WindowsNativeMethods.Point dragStartCursor;
         WindowsNativeMethods.Rect dragStartWindow;
         bool clickThroughApplied;
+        bool wasLeftButtonDown;
 #endif
 
         void Awake()
@@ -181,7 +182,19 @@ namespace Mojinloop.Desktop
 
             bool overControls = cursor.X >= rect.Right - 150 && cursor.X < rect.Right &&
                                 cursor.Y >= rect.Top && cursor.Y < rect.Top + 30;
+            bool leftButtonDown =
+                (WindowsNativeMethods.GetAsyncKeyState(WindowsNativeMethods.VK_LBUTTON) & 0x8000) != 0;
+
+            // Start directly from the native mouse state. A click-through window
+            // can miss Unity's OnGUI MouseDown even after the style is toggled.
+            if (dragMode == DragMode.None && overControls &&
+                leftButtonDown && !wasLeftButtonDown)
+            {
+                BeginDrag(cursor.X >= rect.Right - 70 ? DragMode.Resize : DragMode.Move);
+            }
+
             SetRuntimeClickThrough(IsClickThrough && !overControls && dragMode == DragMode.None);
+            wasLeftButtonDown = leftButtonDown;
         }
 
         void SetRuntimeClickThrough(bool enabled)
@@ -203,10 +216,8 @@ namespace Mojinloop.Desktop
             const float width = 70f;
             var moveRect = new UnityEngine.Rect(Screen.width - width * 2, 0, width, 28);
             var sizeRect = new UnityEngine.Rect(Screen.width - width, 0, width, 28);
-            if (GUI.RepeatButton(moveRect, "MOVE") && Event.current.type == EventType.MouseDown)
-                BeginDrag(DragMode.Move);
-            if (GUI.RepeatButton(sizeRect, "SIZE") && Event.current.type == EventType.MouseDown)
-                BeginDrag(DragMode.Resize);
+            GUI.Box(moveRect, "MOVE");
+            GUI.Box(sizeRect, "SIZE");
         }
 
         void BeginDrag(DragMode mode)
