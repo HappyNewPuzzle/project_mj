@@ -1,2 +1,2 @@
 using UnityEngine;
-namespace Mojinloop.Desktop { [CreateAssetMenu(menuName="Mojinloop/Desktop Window Settings")] public sealed class DesktopWindowSettings : ScriptableObject { [Min(160)] public int width=640; [Min(90)] public int height=240; [Min(0)] public int rightMargin=16; [Min(0)] public int bottomMargin=8; public bool topmost=true; public bool clickThrough=true; } }
+namespace Mojinloop.Desktop { [CreateAssetMenu(menuName="Mojinloop/Desktop Window Settings")] public sealed class DesktopWindowSettings : ScriptableObject { [Min(160)] public int width=640; [Min(90)] public int height=240; [Min(0)] public int rightMargin=16; [Min(0)] public int bottomMargin=8; public bool topmost=true; public bool clickThrough=true; public bool showWindowControls=true; } }

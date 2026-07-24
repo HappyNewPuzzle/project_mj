@@ -18,3 +18,4 @@ MonoBehaviour:
   bottomMargin: 8
   topmost: 1
   clickThrough: 1
+  showWindowControls: 1

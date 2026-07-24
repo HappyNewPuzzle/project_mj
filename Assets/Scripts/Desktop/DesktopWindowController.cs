@@ -17,6 +17,11 @@ namespace Mojinloop.Desktop
         static readonly WindowsNativeMethods.EnumWindowsProc WindowSearchCallback = FindProcessWindow;
         static uint processId;
         static IntPtr processWindow;
+        enum DragMode { None, Move, Resize }
+        DragMode dragMode;
+        WindowsNativeMethods.Point dragStartCursor;
+        WindowsNativeMethods.Rect dragStartWindow;
+        bool clickThroughApplied;
 #endif
 
         void Awake()
@@ -64,6 +69,7 @@ namespace Mojinloop.Desktop
         int BottomMargin => settings != null ? settings.bottomMargin : 8;
         bool IsTopmost => settings == null || settings.topmost;
         bool IsClickThrough => settings == null || settings.clickThrough;
+        bool ShowWindowControls => settings == null || settings.showWindowControls;
 
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
         static IntPtr FindOwnWindow()
@@ -103,6 +109,7 @@ namespace Mojinloop.Desktop
             if (IsClickThrough)
                 ex |= WindowsNativeMethods.WS_EX_TRANSPARENT;
             WindowsNativeMethods.SetWindowLongPtr(window, WindowsNativeMethods.GWL_EXSTYLE, new IntPtr(ex));
+            clickThroughApplied = IsClickThrough;
 
             if (!WindowsNativeMethods.SetLayeredWindowAttributes(
                     window, TransparentKeyColorRef, 255, WindowsNativeMethods.LWA_COLORKEY))
@@ -132,6 +139,83 @@ namespace Mojinloop.Desktop
 
             if (!ok)
                 Debug.LogError("Failed to position desktop window.");
+        }
+
+        void Update()
+        {
+            if (window == IntPtr.Zero || !ShowWindowControls)
+                return;
+
+            if (!WindowsNativeMethods.GetCursorPos(out var cursor) ||
+                !WindowsNativeMethods.GetWindowRect(window, out var rect))
+                return;
+
+            if (dragMode != DragMode.None)
+            {
+                if ((WindowsNativeMethods.GetAsyncKeyState(WindowsNativeMethods.VK_LBUTTON) & 0x8000) == 0)
+                {
+                    dragMode = DragMode.None;
+                }
+                else
+                {
+                    int dx = cursor.X - dragStartCursor.X;
+                    int dy = cursor.Y - dragStartCursor.Y;
+                    int width = dragStartWindow.Right - dragStartWindow.Left;
+                    int height = dragStartWindow.Bottom - dragStartWindow.Top;
+                    int x = dragStartWindow.Left;
+                    int y = dragStartWindow.Top;
+                    if (dragMode == DragMode.Move)
+                    {
+                        x += dx;
+                        y += dy;
+                    }
+                    else
+                    {
+                        width = Mathf.Max(320, width + dx);
+                        height = Mathf.Max(120, height + dy);
+                    }
+                    WindowsNativeMethods.SetWindowPos(window, IntPtr.Zero, x, y, width, height,
+                        WindowsNativeMethods.SWP_NOZORDER | WindowsNativeMethods.SWP_NOACTIVATE);
+                }
+            }
+
+            bool overControls = cursor.X >= rect.Right - 150 && cursor.X < rect.Right &&
+                                cursor.Y >= rect.Top && cursor.Y < rect.Top + 30;
+            SetRuntimeClickThrough(IsClickThrough && !overControls && dragMode == DragMode.None);
+        }
+
+        void SetRuntimeClickThrough(bool enabled)
+        {
+            if (clickThroughApplied == enabled)
+                return;
+            long ex = WindowsNativeMethods.GetWindowLongPtr(window, WindowsNativeMethods.GWL_EXSTYLE).ToInt64();
+            if (enabled) ex |= WindowsNativeMethods.WS_EX_TRANSPARENT;
+            else ex &= ~WindowsNativeMethods.WS_EX_TRANSPARENT;
+            WindowsNativeMethods.SetWindowLongPtr(window, WindowsNativeMethods.GWL_EXSTYLE, new IntPtr(ex));
+            clickThroughApplied = enabled;
+        }
+
+        void OnGUI()
+        {
+            if (window == IntPtr.Zero || !ShowWindowControls)
+                return;
+
+            const float width = 70f;
+            var moveRect = new UnityEngine.Rect(Screen.width - width * 2, 0, width, 28);
+            var sizeRect = new UnityEngine.Rect(Screen.width - width, 0, width, 28);
+            if (GUI.RepeatButton(moveRect, "MOVE") && Event.current.type == EventType.MouseDown)
+                BeginDrag(DragMode.Move);
+            if (GUI.RepeatButton(sizeRect, "SIZE") && Event.current.type == EventType.MouseDown)
+                BeginDrag(DragMode.Resize);
+        }
+
+        void BeginDrag(DragMode mode)
+        {
+            if (!WindowsNativeMethods.GetCursorPos(out dragStartCursor) ||
+                !WindowsNativeMethods.GetWindowRect(window, out dragStartWindow))
+                return;
+            dragMode = mode;
+            SetRuntimeClickThrough(false);
         }
 #endif
     }
